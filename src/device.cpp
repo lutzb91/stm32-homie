@@ -3,14 +3,6 @@
 #include "nodecollector.h"
 #include "config.h"
 
-Device::Device(uint8_t *mac) {
-    for(int i=0;i<6;i++) {
-        this->mac[i] = mac[i];
-    }
-    generateDeviceId(mac);
-    createMacString(mac);
-}
-
 void Device::generateDeviceId(uint8_t *mac) {
     //Length MAC-Length+1 -> 13
     snprintf(this->deviceId, 13 , "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -25,13 +17,25 @@ void Device::setIp(uint32_t ip) {
 }
 
 void Device::setFirmware(const char *firmwareName, const char *firmwareVersion) {
-    strncpy(this->firmwareName, firmwareName, 128);
-    this->firmwareName[127] = 0;
-    strncpy(this->firmwareVersion, firmwareVersion, 64);
-    this->firmwareVersion[63] = 0;
+    Device& device = Device::instance();
+    strlcpy(device.firmwareName, firmwareName, 128);
+    strlcpy(device.firmwareVersion, firmwareVersion, 64);
 }
 
-void Device::init() {
+void Device::setName(const char *name) {
+    Device& device = Device::instance();
+    strncpy(device.name, name, 128);
+    device.name[127] = 0;
+}
+
+void Device::setup(uint8_t *mac) {
+    Device& device = Device::instance();
+    for(int i=0;i<6;i++) {
+        device.mac[i] = mac[i];
+    }
+    device.generateDeviceId(mac);
+    device.createMacString(mac);
+
     if(Ethernet.begin(mac) == 0) {
         //Ethernet connect failed
         for(;;) {
@@ -47,19 +51,19 @@ void Device::init() {
         }
     }
     IPAddress ip = Ethernet.localIP();
-    this->setIp(ip);
+    device.setIp(ip);
 
     // Connect MQTT - Retry 3 times
-    this->mqttClient.setClient(ethClient);
-    this->mqttClient.setServer(Config::instance().getMqttIp(),Config::instance().getMqttPort());
+    device.mqttClient.setClient(device.ethClient);
+    device.mqttClient.setServer(Config::instance().getMqttIp(),Config::instance().getMqttPort());
 
     char mqttId[19];
     strncpy(mqttId, "stmqtt", 6);
-    strncat(mqttId, this->deviceId, 12);
+    strncat(mqttId, device.deviceId, 12);
     int counter = 0;
     do {
-        if(!this->mqttClient.connect(mqttId, Config::instance().getMqttUsername(), Config::instance().getMqttPassword())) {
-            if(this->mqttClient.state() != MQTT_CONNECT_FAILED) {
+        if(!device.mqttClient.connect(mqttId, Config::instance().getMqttUsername(), Config::instance().getMqttPassword())) {
+            if(device.mqttClient.state() != MQTT_CONNECT_FAILED) {
                 // other error - wait forever
                 for(;;);
             }
@@ -69,15 +73,15 @@ void Device::init() {
         if(counter == 3) {
             for(;;);
         }
-    } while(!this->mqttClient.connected());
+    } while(!device.mqttClient.connected());
 
-    this->mqttClient.publish(constructTopic("$state"), "init", true);
-    this->mqttClient.publish(constructTopic("$homie"), "3.0.0", true);
-    this->mqttClient.publish(constructTopic("$name"), this->name, true);
-    this->mqttClient.publish(constructTopic("$mac"), this->macStr, true);
-    this->mqttClient.publish(constructTopic("$localip"), this->ip, true);
-    this->mqttClient.publish(constructTopic("$fw/name"), this->firmwareName, true);
-    this->mqttClient.publish(constructTopic("$fw/version"), this->firmwareVersion, true);
+    device.mqttClient.publish(constructTopic("$state"), "init", true);
+    device.mqttClient.publish(constructTopic("$homie"), "3.0.0", true);
+    device.mqttClient.publish(constructTopic("$name"), device.name, true);
+    device.mqttClient.publish(constructTopic("$mac"), device.macStr, true);
+    device.mqttClient.publish(constructTopic("$localip"), device.ip, true);
+    device.mqttClient.publish(constructTopic("$fw/name"), device.firmwareName, true);
+    device.mqttClient.publish(constructTopic("$fw/version"), device.firmwareVersion, true);
 
     //Nodes
     // memory for all nodes plus array
@@ -93,35 +97,48 @@ void Device::init() {
         }
     }
 
-    this->mqttClient.publish(constructTopic("$nodes"), nodes, true);
-    this->mqttClient.publish(constructTopic("$implementation"), "stm32", true);
-    this->mqttClient.publish(constructTopic("$stats"), "uptime", true);
-    this->mqttClient.publish(constructTopic("$stats/interval"), "60", true);
-    this->mqttClient.publish(constructTopic("$state"), "ready", true);
+    device.mqttClient.publish(constructTopic("$nodes"), nodes, true);
+    device.mqttClient.publish(constructTopic("$implementation"), "stm32", true);
+    device.mqttClient.publish(constructTopic("$stats"), "uptime", true);
+    device.mqttClient.publish(constructTopic("$stats/interval"), "60", true);
 
     char uptimeStr[21];
-    uptime.update();
-    itoa(uptime.getSeconds(), uptimeStr, 10);
-    this->mqttClient.publish(constructTopic("$stats/uptime"), uptimeStr, true);
+    device.uptime.update();
+    itoa(device.uptime.getSeconds(), uptimeStr, 10);
+    device.mqttClient.publish(constructTopic("$stats/uptime"), uptimeStr, true);
 
-    this->statsTimer.setIntervalAndStart(60*1000);
+    device.statsTimer.setIntervalAndStart(60*1000);
+
+    for(uint i=0;i<NodeCollector::instance().size();i++) {
+        NodeCollector::instance().get(i)->setup();
+    }
+
+    device.mqttClient.publish(constructTopic("$state"), "ready", true);
 }
 
 void Device::loop() {
-    this->mqttClient.loop();
+    Device& device = Device::instance();
+    device.mqttClient.loop();
 
-    if(this->statsTimer.expired()) {
+    if(device.statsTimer.expired()) {
         char uptimeStr[21];
-        uptime.update();
-        itoa(uptime.getSeconds(), uptimeStr, 10);
-        this->mqttClient.publish(constructTopic("$stats/uptime"), uptimeStr, true);
+        device.uptime.update();
+        itoa(device.uptime.getSeconds(), uptimeStr, 10);
+        device.mqttClient.publish(constructTopic("$stats/uptime"), uptimeStr, true);
+        device.mqttClient.publish(constructTopic("$stats/interval"), "60", true);
+    }
+
+    for(uint i=0;i<NodeCollector::instance().size();i++) {
+        NodeCollector::instance().get(i)->loop();
     }
 }
 
 char* Device::constructTopic(const char *topic) {
+    Device& device = Device::instance();
+    char* buffer = device.buffer;
     strncpy(buffer, BASE_TOPIC, sizeof(BASE_TOPIC));
     strncat(buffer, "/", 1);
-    strncat(buffer, this->deviceId, 12);
+    strncat(buffer, device.deviceId, 12);
     strncat(buffer, "/", 1);
     strncat(buffer, topic, strlen(topic));
     return buffer;
@@ -129,4 +146,8 @@ char* Device::constructTopic(const char *topic) {
 
 void Device::onEvent(std::function<void(const Event&)> eventHandler) {
     this->eventHandler = eventHandler;
+}
+
+PubSubClient& Device::getMqttClient() {
+    return mqttClient;
 }

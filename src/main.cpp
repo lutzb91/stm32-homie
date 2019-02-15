@@ -11,17 +11,22 @@
 uint8_t mac[6] = {0x74,0x69,0x69,0x2D,0x30,0x31};
 
 Adafruit_SSD1306 display;
-Device device(mac);
 
-Node n1("tollerNode", false);
-Node n2("light", true);
-Node n3("transformer", false);
+Node n1("trafo", "Trafo", "Electric");
+Node n2("led", "LED Streifen", "Light");//, true, 10);
+Node n3("mode", "Modus", "control");
 
 void setup()   {
   delay(500);
 
-  device.setFirmware("TestFirmwareSTM32", "1.0.0");
-  device.init();
+  Device::setFirmware("TestFirmwareSTM32", "1.0.0");
+  Device::setName("Kellerlicht");
+
+  n1.exposeProperty("status", "Status", true, false, "", Node::Datatype::BOOLEAN);
+  n1.exposeProperty("voltage", "Voltage", false, true, "V", Node::Datatype::FLOAT);
+  n3.exposeProperty("mode", "Modus");
+
+  Device::setup(mac);
 
   pinMode(PC13, OUTPUT);
 
@@ -67,10 +72,10 @@ void setup()   {
     }
   }
   display.display();
-  
+
 }
 
 
 void loop() {
-  device.loop();
+  Device::loop();
 }

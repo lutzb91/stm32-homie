@@ -3,33 +3,15 @@
 #include <Arduino.h>
 #include <UIPEthernet.h>
 
-/*enum class EventType : uint8_t {
-    ETHERNET_CONNECTED = 1,
-    ETHERNET_CONNECT_FAILED,
-    MQTT_CONNECTED,
-    MQTT_CONNECT_FAILED
-};*/
-
-enum class HomieEventType : uint8_t {
-  STANDALONE_MODE = 1,
-  CONFIGURATION_MODE,
-  NORMAL_MODE,
-  OTA_STARTED,
-  OTA_PROGRESS,
-  OTA_SUCCESSFUL,
-  OTA_FAILED,
-  ABOUT_TO_RESET,
-  WIFI_CONNECTED,
-  WIFI_DISCONNECTED,
-  MQTT_READY,
-  MQTT_DISCONNECTED,
-  MQTT_PACKET_ACKNOWLEDGED,
-  READY_TO_SLEEP
+enum class EventType : uint8_t {
+    EVENT_ETHERNET_CONNECTED = 1,
+    EVENT_ETHERNET_CONNECT_FAILED,
+    EVENT_MQTT_CONNECTED,
+    EVENT_MQTT_CONNECT_FAILED
 };
 
-
 struct Event {
-    int type;
+    EventType type;
     IPAddress ip;
     int mqttState;
 };
