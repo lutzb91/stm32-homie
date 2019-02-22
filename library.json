@@ -1,0 +1,30 @@
+{
+    "name": "Homie-stm32",
+    "version": "1.0.0",
+    "keywords": "iot, homie, stm32",
+    "description": "Implementation of the Homie Framework for the STM32 (Arduino)",
+    "homepage": "https://github.com/lutzb91/stm32-homie",
+    "license": "MIT",
+    "authors": {
+        "name": "Lutz Bahr",
+        "maintainer": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lutzb91/stm32-homie.git",
+        "branch": "master"
+    },
+    "frameworks": "arduino",
+    "platforms": "ststm32",
+    "dependencies": [
+        {
+            "name": "PubSubClient",
+            "version": "^2.7"
+        }
+    ],
+    "export": {
+        "include": [
+            "src/*"
+        ]
+    }
+}
