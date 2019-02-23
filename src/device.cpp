@@ -28,7 +28,7 @@ void Device::setName(const char *name) {
     device.name[127] = 0;
 }
 
-void Device::setup(uint8_t *mac, IPAddress *ip, Client *client) {
+void Device::setup(uint8_t *mac, uint32_t ip, Client *client) {
     Device& device = Device::instance();
     for(int i=0;i<6;i++) {
         device.mac[i] = mac[i];
@@ -38,7 +38,7 @@ void Device::setup(uint8_t *mac, IPAddress *ip, Client *client) {
 
     device.ethClient = client;
 
-    device.setIp(*ip);
+    device.setIp(ip);
 
     // Connect MQTT - Retry 3 times
 

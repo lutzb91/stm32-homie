@@ -44,7 +44,7 @@ class Device {
         Device & operator = (const Device &);
 
     public:
-        static void setup(uint8_t *mac, IPAddress *ip, Client *client);
+        static void setup(uint8_t *mac, uint32_t ip, Client *client);
         static void loop();
         static void setFirmware(const char *firmwareName, const char *firmwareVersion);
         static void setName(const char *name);
