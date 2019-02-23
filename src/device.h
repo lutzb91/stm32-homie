@@ -2,7 +2,7 @@
 #define DEVICE_H
 
 #include <PubSubClient.h>
-#include <UIPEthernet.h>
+#include <Client.h>
 #include "node.h"
 #include "util/simpletimer.h"
 #include "util/uptime.h"
@@ -15,7 +15,7 @@ class Device {
     friend class ::Node;
 
     private:
-        EthernetClient ethClient;
+        Client *ethClient;
         PubSubClient mqttClient;
         char name[128];
         char deviceId[12];
@@ -44,7 +44,7 @@ class Device {
         Device & operator = (const Device &);
 
     public:
-        static void setup(uint8_t *mac);
+        static void setup(uint8_t *mac, IPAddress *ip, Client *client);
         static void loop();
         static void setFirmware(const char *firmwareName, const char *firmwareVersion);
         static void setName(const char *name);

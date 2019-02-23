@@ -28,7 +28,7 @@ void Device::setName(const char *name) {
     device.name[127] = 0;
 }
 
-void Device::setup(uint8_t *mac) {
+void Device::setup(uint8_t *mac, IPAddress *ip, Client *client) {
     Device& device = Device::instance();
     for(int i=0;i<6;i++) {
         device.mac[i] = mac[i];
@@ -36,25 +36,13 @@ void Device::setup(uint8_t *mac) {
     device.generateDeviceId(mac);
     device.createMacString(mac);
 
-    if(Ethernet.begin(mac) == 0) {
-        //Ethernet connect failed
-        for(;;) {
-        delay(200);
-        digitalWrite(PC13, LOW);
-        delay(200);
-        digitalWrite(PC13, HIGH);
-        delay(200);
-        digitalWrite(PC13, LOW);
-        delay(200);
-        digitalWrite(PC13, HIGH);
-        delay(1000);
-        }
-    }
-    IPAddress ip = Ethernet.localIP();
-    device.setIp(ip);
+    device.ethClient = client;
+
+    device.setIp(*ip);
 
     // Connect MQTT - Retry 3 times
-    device.mqttClient.setClient(device.ethClient);
+
+    device.mqttClient.setClient(*device.ethClient);
     device.mqttClient.setServer(Config::instance().getMqttIp(),Config::instance().getMqttPort());
 
     char mqttId[19];

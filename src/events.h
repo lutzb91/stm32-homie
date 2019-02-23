@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include <UIPEthernet.h>
 
 enum class EventType : uint8_t {
     EVENT_ETHERNET_CONNECTED = 1,
