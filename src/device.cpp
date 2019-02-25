@@ -28,7 +28,50 @@ void Device::setName(const char *name) {
     device.name[127] = 0;
 }
 
-void Device::setup(uint8_t *mac, uint32_t ip, Client *client) {
+void Device::callback(char* topic, byte* payload, unsigned int length) {
+    Device& device = Device::instance();
+    
+    // check basetopic and id
+    if(strncmp(topic, BASE_TOPIC, strlen(BASE_TOPIC)) != 0) {
+        device.getMqttClient().publish("debug/base_topic", "wrong");
+        return;
+    }
+    if(strncmp(topic + strlen(BASE_TOPIC) + 1, device.deviceId, 12) != 0) {
+        device.getMqttClient().publish("debug/device_id", "wrong");
+        return;
+    }
+
+    char *startNodeId = topic + strlen(BASE_TOPIC) + 14; // 14 is BASE_TOPIC + id (12) + 2 '/'
+
+    // Find correct Node
+    for(uint i=0;i<NodeCollector::instance().size();i++) {
+        Node *node = NodeCollector::instance().get(i);
+        if(strncmp(startNodeId, node->getId(), strlen(node->getId())) == 0) {
+
+            // correct Node found
+            char *startPropId = startNodeId + 1 + strlen(node->getId());
+
+            for(auto property = node->getProperties().begin(); property != node->getProperties().end(); ++property) {
+                Property *prop = *property;
+                char *propertyId = prop->getId();
+                if(strncmp(startPropId, propertyId, strlen(propertyId)) == 0) {
+                    // correct property found
+                    if(strncmp(startPropId + 1 + strlen(propertyId), "set", 3) != 0) {
+                        // no '../set'
+                        return;
+                    }
+                    if(length < 128) {
+                        memcpy(device.buffer, payload, length);
+                        device.buffer[length] = '\0';
+                        prop->callHandler(device.buffer);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Device::setup(uint8_t *mac, uint32_t ip, Client& client) {
     Device& device = Device::instance();
     for(int i=0;i<6;i++) {
         device.mac[i] = mac[i];
@@ -36,7 +79,7 @@ void Device::setup(uint8_t *mac, uint32_t ip, Client *client) {
     device.generateDeviceId(mac);
     device.createMacString(mac);
 
-    device.ethClient = client;
+    device.ethClient = &client;
 
     device.setIp(ip);
 
@@ -44,6 +87,7 @@ void Device::setup(uint8_t *mac, uint32_t ip, Client *client) {
 
     device.mqttClient.setClient(*device.ethClient);
     device.mqttClient.setServer(Config::instance().getMqttIp(),Config::instance().getMqttPort());
+    device.mqttClient.setCallback(device.callback);
 
     char mqttId[19];
     strncpy(mqttId, "stmqtt", 6);
@@ -70,6 +114,8 @@ void Device::setup(uint8_t *mac, uint32_t ip, Client *client) {
     device.mqttClient.publish(constructTopic("$localip"), device.ip, true);
     device.mqttClient.publish(constructTopic("$fw/name"), device.firmwareName, true);
     device.mqttClient.publish(constructTopic("$fw/version"), device.firmwareVersion, true);
+
+    device.mqttClient.subscribe("debug/tests/#");
 
     //Nodes
     // memory for all nodes plus array

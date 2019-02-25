@@ -21,29 +21,10 @@ boolean Node::isArray() {
     return this->array;
 }
 
-void Node::exposeProperty(const char* id, const char* name, bool settable, bool retained, const char *unit, Datatype datatype, const char *format) {
-    const char *type;
-    switch(datatype) {
-        case Datatype::INTEGER:
-            type = "integer";
-            break;
-        case Datatype::FLOAT:
-            type = "float";
-            break;
-        case Datatype::BOOLEAN:
-            type = "boolean";
-            break;
-        case Datatype::STRING:
-            type = "string";
-            break;
-        case Datatype::ENUM:
-            type = "enum";
-            break;
-        case Datatype::COLOR:
-            type = "color";
-            break;
-    }
-    this->properties.push_back(new Property(id, name, settable, retained, unit, type, format));
+Property& Node::exposeProperty(const char* id, const char* name, bool settable, bool retained, const char *unit, Datatype datatype, const char *format) {
+    Property* property = new Property(id, name, settable, retained, unit, datatype, format);
+    this->properties.push_back(property);
+    return *property;
 }
 
 void Node::setup() {
@@ -67,6 +48,9 @@ void Node::setup() {
         mqtt.publish(constructPropertyTopic(prop->getId(), "$format"), prop->getFormat(), true);
         strlcat(buffer, prop->getId(), 128);
         strlcat(buffer, ",", 128);
+        if(prop->isSettable()) {
+            mqtt.subscribe(constructPropertyTopic(prop->getId(), "set"));
+        }
     }
     buffer[strlen(buffer)-1] = '\0'; // remove last comma
     mqtt.publish(constructTopic("$properties"), buffer, true);
@@ -74,6 +58,10 @@ void Node::setup() {
 
 void Node::loop() {
 
+}
+
+std::vector<Property*> Node::getProperties() {
+    return this->properties;
 }
 
 char* Node::constructTopic(const char *topic) {

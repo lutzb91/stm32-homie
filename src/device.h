@@ -4,6 +4,7 @@
 #include <PubSubClient.h>
 #include <Client.h>
 #include "node.h"
+#include "property.h"
 #include "util/simpletimer.h"
 #include "util/uptime.h"
 #include "events.h"
@@ -13,6 +14,7 @@
 
 class Device {
     friend class ::Node;
+    friend class ::Property;
 
     private:
         Client *ethClient;
@@ -39,12 +41,14 @@ class Device {
 
         PubSubClient& getMqttClient();
 
+        static void callback(char* topic, byte* payload, unsigned int length);
+
         Device() {}
         Device( const Device& );
         Device & operator = (const Device &);
 
     public:
-        static void setup(uint8_t *mac, uint32_t ip, Client *client);
+        static void setup(uint8_t *mac, uint32_t ip, Client& client);
         static void loop();
         static void setFirmware(const char *firmwareName, const char *firmwareVersion);
         static void setName(const char *name);

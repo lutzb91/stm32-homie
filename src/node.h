@@ -1,10 +1,10 @@
-#ifndef NODE_H
-#define NODE_H
+#pragma once
 
 #include <vector>
 #include <Arduino.h>
 #include <PubSubClient.h>
 #include "property.h"
+#include "Datatype.h"
 
 #define NODE_ID_LENGTH 128
 #define NODE_NAME_LENGTH 128
@@ -24,19 +24,14 @@ class Node {
 
         std::vector<Property*> properties;
     public:
-        enum class Datatype : uint8_t {
-            INTEGER, FLOAT, BOOLEAN, STRING, ENUM, COLOR
-        };
-
         Node(const char *id, const char *name, const char *type, boolean array = false, uint8_t size = 1);
         char *getId();
         boolean isArray();
-        void exposeProperty(const char* id, const char* name = "", bool settable = false, bool retained = true, const char *unit = "", Datatype datatype = Datatype::STRING, const char *format = "");
+        Property& exposeProperty(const char* id, const char* name = "", bool settable = false, bool retained = true, const char *unit = "", Datatype datatype = Datatype::STRING, const char *format = "");
+        std::vector<Property*> getProperties();
         void setup();
         void loop();
         
 
     static std::vector<Node*> nodes;
 };
-
-#endif
