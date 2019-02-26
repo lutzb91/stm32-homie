@@ -1,0 +1,21 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/homie
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout
+      - run:
+          name: install PlatformIO
+          command: sudo pip install -U platformio
+      - run:
+          name: install current code as a PlatformIO library with all dependencies
+          command: platformio lib -g install file://.
+      - run:
+          name: install Arduino Core for ST STM32
+          command: platformio platform install ststm32
+      - run:
+          name: install dependencies for examples
+          command: platformio lib -g install UIPEthernet@2.0.7
+      - run: platformio ci ./examples/LedOnOff --board=bluepill_f103c8

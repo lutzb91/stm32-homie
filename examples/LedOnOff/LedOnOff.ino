@@ -8,21 +8,21 @@ EthernetClient client;
 /* Nodes */
 Node led13("led", "LED PC13", "led");
 
-bool ledOn = true;
+void ledOnHandler(const char *data) {
 
-void ledOnHandler(const char *on) {
-    if(ledOn) {
+    bool on = strcmp(data, "true") == 0;
+
+    if(on) {
         digitalWrite(PC13, LOW);
     } else {
         digitalWrite(PC13, HIGH);
     }
-    ledOn = !ledOn;
 }
 
 void setup() {
     delay(500);
     pinMode(PC13, OUTPUT);
-    digitalWrite(PC13, LOW);
+    
     Device::setFirmware("LedOnOff", "1.0.0");
     Device::setName("Led");
 
@@ -35,7 +35,9 @@ void setup() {
 
     Device::setup(mac, Ethernet.localIP(), client);
 
-    
+    // Send Property after setup
+    led13.sendProperty("on", "true");
+    digitalWrite(PC13, LOW);
 }
 
 void loop() {

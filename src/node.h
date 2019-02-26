@@ -21,6 +21,9 @@ class Node {
 
         char* constructTopic(const char *topic);
         char* constructPropertyTopic(const char *id, const char *topic);
+        char* constructPropertyTopic(const char *id);
+
+        Property* getProperty(const char *id);
 
         std::vector<Property*> properties;
     public:
@@ -28,6 +31,7 @@ class Node {
         char *getId();
         boolean isArray();
         Property& exposeProperty(const char* id, const char* name = "", bool settable = false, bool retained = true, const char *unit = "", Datatype datatype = Datatype::STRING, const char *format = "");
+        void sendProperty(const char* id, const char *data);
         std::vector<Property*> getProperties();
         void setup();
         void loop();

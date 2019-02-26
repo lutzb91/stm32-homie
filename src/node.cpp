@@ -21,10 +21,28 @@ boolean Node::isArray() {
     return this->array;
 }
 
+Property* Node::getProperty(const char *id) {
+    for(auto property = this->properties.begin(); property != this->properties.end(); ++property) {
+        Property *prop = *property;
+        if(strcmp(prop->getId(), id) == 0) {
+            return prop;
+        }
+    }
+    return NULL;
+}
+
 Property& Node::exposeProperty(const char* id, const char* name, bool settable, bool retained, const char *unit, Datatype datatype, const char *format) {
     Property* property = new Property(id, name, settable, retained, unit, datatype, format);
     this->properties.push_back(property);
     return *property;
+}
+
+void Node::sendProperty(const char* id, const char *data) {
+    PubSubClient& mqtt = Device::instance().getMqttClient();
+    Property *property = getProperty(id);
+    if(property) {
+        mqtt.publish(constructPropertyTopic(property->getId()), data, property->isRetained());
+    }
 }
 
 void Node::setup() {
@@ -77,5 +95,11 @@ char* Node::constructPropertyTopic(const char *id, const char *topic) {
     strcpy(buffer, id);
     strcat(buffer, "/");
     strcat(buffer, topic);
+    return constructTopic(buffer);
+}
+
+char* Node::constructPropertyTopic(const char *id) {
+    char buffer[128];
+    strcpy(buffer, id);
     return constructTopic(buffer);
 }
