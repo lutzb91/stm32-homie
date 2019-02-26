@@ -1,6 +1,6 @@
 {
     "name": "Homie-stm32",
-    "version": "1.0.0",
+    "version": "0.9.0",
     "keywords": "iot, homie, stm32",
     "description": "Implementation of the Homie Framework for the STM32 (Arduino)",
     "homepage": "https://github.com/lutzb91/stm32-homie",
