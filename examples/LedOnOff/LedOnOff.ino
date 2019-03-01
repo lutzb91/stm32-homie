@@ -1,5 +1,5 @@
 #include <UIPEthernet.h>
-#include <device.h>
+#include <Device.h>
 
 uint8_t mac[6] = {0x74,0x69,0x69,0x2D,0x30,0x32};
 
