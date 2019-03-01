@@ -34,7 +34,7 @@ class Device {
         void generateDeviceId(uint8_t *mac);
         void createMacString(uint8_t *mac);
         static char* constructTopic(const char *topic);
-        std::function<void(const Event&)> eventHandler;
+        std::function<void(const Event&)> eventHandler = NULL;
 
         void setIp(uint32_t ip);
 

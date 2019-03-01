@@ -96,11 +96,13 @@ void Device::setup(uint8_t *mac, uint32_t ip, Client& client) {
     do {
         if(!device.mqttClient.connect(mqttId, Config::instance().getMqttUsername(), Config::instance().getMqttPassword(), constructTopic("$state"), 1, true, "lost")) {
             if(device.mqttClient.state() != MQTT_CONNECT_FAILED) {
-                Event event;
-                event.type = EventType::EVENT_MQTT_CONNECT_FAILED;
-                event.mqttState = device.mqttClient.state();
+                if(device.eventHandler != NULL) {
+                    Event event;
+                    event.type = EventType::EVENT_MQTT_CONNECT_FAILED;
+                    event.mqttState = device.mqttClient.state();
 
-                device.eventHandler(event);
+                    device.eventHandler(event);
+                }
                 // other error - wait forever
                 for(;;);
             }
@@ -112,11 +114,13 @@ void Device::setup(uint8_t *mac, uint32_t ip, Client& client) {
         }
     } while(!device.mqttClient.connected());
 
-    Event event;
-    event.type = EventType::EVENT_MQTT_CONNECTED;
-    event.mqttState = device.mqttClient.state();
+    if(device.eventHandler != NULL) {
+        Event event;
+        event.type = EventType::EVENT_MQTT_CONNECTED;
+        event.mqttState = device.mqttClient.state();
 
-    device.eventHandler(event);
+        device.eventHandler(event);
+    }
 
     device.mqttClient.publish(constructTopic("$state"), "init", true);
     device.mqttClient.publish(constructTopic("$homie"), "3.0.0", true);
