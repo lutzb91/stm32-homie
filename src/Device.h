@@ -1,13 +1,12 @@
-#ifndef DEVICE_H
-#define DEVICE_H
+#pragma once
 
 #include <PubSubClient.h>
 #include <Client.h>
-#include "node.h"
-#include "property.h"
-#include "util/simpletimer.h"
-#include "util/uptime.h"
-#include "events.h"
+#include "Node.h"
+#include "Property.h"
+#include "util/Simpletimer.h"
+#include "util/Uptime.h"
+#include "Events.h"
 
 #define BASE_TOPIC "homie"
 #define BUFFER_SIZE 128
@@ -61,5 +60,3 @@ class Device {
         }
         ~Device() {}
 };
-
-#endif

@@ -1,6 +1,6 @@
-#include "node.h"
-#include "nodecollector.h"
-#include "device.h"
+#include "Node.h"
+#include "Nodecollector.h"
+#include "Device.h"
 
 std::vector<Node*> Node::nodes;
 

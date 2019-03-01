@@ -1,4 +1,4 @@
-#include "nodecollector.h"
+#include "Nodecollector.h"
 
 void NodeCollector::add(Node *node) {
     this->nodes.push_back(node);

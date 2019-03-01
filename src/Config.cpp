@@ -1,5 +1,5 @@
 #include <string.h>
-#include "config.h"
+#include "Config.h"
 
 void Config::loadData() {
     this->mqttPort = 1883;

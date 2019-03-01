@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "property.h"
+#include "Property.h"
 
 Property::Property(const char *id, const char *name, bool settable, bool retained, const char *unit, Datatype datatype, const char *format) {
     strlcpy(this->id, id, 64);

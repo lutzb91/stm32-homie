@@ -1,5 +1,5 @@
 #pragma once
-#include "node.h"
+#include "Node.h"
 #include <vector>
 
 class NodeCollector {

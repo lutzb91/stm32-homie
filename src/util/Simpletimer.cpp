@@ -1,4 +1,4 @@
-#include "simpletimer.h"
+#include "Simpletimer.h"
 
 SimpleTimer::SimpleTimer() {
     this->start = millis();

@@ -1,4 +1,4 @@
-#include "uptime.h"
+#include "Uptime.h"
 
 
 Uptime::Uptime() : _milliseconds(0), _lastTick(0) {
