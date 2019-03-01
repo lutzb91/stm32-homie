@@ -3,7 +3,7 @@
 #include <vector>
 #include <Arduino.h>
 #include <PubSubClient.h>
-#include "property.h"
+#include "Property.h"
 #include "Datatype.h"
 
 #define NODE_ID_LENGTH 128
