@@ -3,11 +3,11 @@
 
 void Config::loadData() {
     this->mqttPort = 1883;
-    strncpy(this->mqttIp, "192.168.178.102", 15);
+    strlcpy(this->mqttIp, "192.168.178.102", 16);
     this->mqttIp[15] = 0;
-    strncpy(this->mqttUsername, "openhabian", 32);
+    strlcpy(this->mqttUsername, "openhabian", 32);
     this->mqttUsername[32] = 0;
-    strncpy(this->mqttPassword, "openhabian", 32);
+    strlcpy(this->mqttPassword, "openhabian", 32);
     this->mqttPassword[32] = 0;
 }
 

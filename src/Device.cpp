@@ -90,8 +90,8 @@ void Device::setup(uint8_t *mac, uint32_t ip, Client& client) {
     device.mqttClient.setCallback(device.callback);
 
     char mqttId[19];
-    strncpy(mqttId, "stmqtt", 6);
-    strncat(mqttId, device.deviceId, 12);
+    strlcpy(mqttId, "stmqtt", 19);
+    strlcat(mqttId, device.deviceId, 19);
     int counter = 0;
     do {
         if(!device.mqttClient.connect(mqttId, Config::instance().getMqttUsername(), Config::instance().getMqttPassword(), constructTopic("$state"), 1, true, "lost")) {
@@ -133,20 +133,22 @@ void Device::setup(uint8_t *mac, uint32_t ip, Client& client) {
     device.mqttClient.subscribe("debug/tests/#");
 
     //Nodes
-    // memory for all nodes plus array
-    char nodes[NodeCollector::instance().size()*(NODE_ID_LENGTH + 2) + NodeCollector::instance().size()-1];
+    // memory for all nodes plus array brackets + commas + NUL-Termination
+    size_t nodesSize = NodeCollector::instance().size()*(NODE_ID_LENGTH + 2) + NodeCollector::instance().size();
+    char *nodes = (char*) malloc(nodesSize);
     nodes[0] = 0;
     for(uint i=0;i<NodeCollector::instance().size();i++) {
-        strncat(nodes, NodeCollector::instance().get(i)->getId(), NODE_ID_LENGTH);
+        strlcat(nodes, NodeCollector::instance().get(i)->getId(), nodesSize);
         if(NodeCollector::instance().get(i)->isArray()) {
-            strncat(nodes, "[]", 2);
+            strlcat(nodes, "[]", nodesSize);
         }
         if(i < NodeCollector::instance().size()-1) {
-            strncat(nodes, ",", 1);
+            strlcat(nodes, ",", nodesSize);
         }
     }
 
     device.mqttClient.publish(constructTopic("$nodes"), nodes, true);
+    free(nodes);
     device.mqttClient.publish(constructTopic("$implementation"), "stm32", true);
     device.mqttClient.publish(constructTopic("$stats"), "uptime", true);
     device.mqttClient.publish(constructTopic("$stats/interval"), "60", true);
@@ -185,11 +187,11 @@ void Device::loop() {
 char* Device::constructTopic(const char *topic) {
     Device& device = Device::instance();
     char* buffer = device.buffer;
-    strncpy(buffer, BASE_TOPIC, sizeof(BASE_TOPIC));
-    strncat(buffer, "/", 1);
-    strncat(buffer, device.deviceId, 12);
-    strncat(buffer, "/", 1);
-    strncat(buffer, topic, strlen(topic));
+    strlcpy(buffer, BASE_TOPIC, BUFFER_SIZE);
+    strlcat(buffer, "/", BUFFER_SIZE);
+    strlcat(buffer, device.deviceId, BUFFER_SIZE);
+    strlcat(buffer, "/", BUFFER_SIZE);
+    strlcat(buffer, topic, BUFFER_SIZE);
     return buffer;
 }
 
