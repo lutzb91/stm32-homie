@@ -19,3 +19,4 @@ jobs:
           name: install dependencies for examples
           command: platformio lib -g install 872@2.0.0
       - run: platformio ci ./examples/LedOnOff --board=bluepill_f103c8
+      - run: platformio ci ./examples/TemperatureSensor --board=bluepill_f103c8
