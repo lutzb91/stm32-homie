@@ -196,7 +196,8 @@ char* Device::constructTopic(const char *topic) {
 }
 
 void Device::onEvent(std::function<void(const Event&)> eventHandler) {
-    this->eventHandler = eventHandler;
+    Device& device = Device::instance();
+    device.eventHandler = eventHandler;
 }
 
 PubSubClient& Device::getMqttClient() {

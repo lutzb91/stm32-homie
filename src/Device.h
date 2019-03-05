@@ -52,7 +52,7 @@ class Device {
         static void setFirmware(const char *firmwareName, const char *firmwareVersion);
         static void setName(const char *name);
 
-        void onEvent(std::function<void(const Event&)> eventHandler);
+        static void onEvent(std::function<void(const Event&)> eventHandler);
 
         static Device& instance() {
             static Device _instance;
