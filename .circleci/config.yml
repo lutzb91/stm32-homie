@@ -17,5 +17,5 @@ jobs:
           command: platformio platform install ststm32
       - run:
           name: install dependencies for examples
-          command: platformio lib -g install UIPEthernet@2.0.7
+          command: platformio lib -g install 872@2.0.0
       - run: platformio ci ./examples/LedOnOff --board=bluepill_f103c8
